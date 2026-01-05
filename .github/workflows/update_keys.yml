@@ -4,9 +4,10 @@ on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
-  
+
 permissions:
   contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -14,70 +15,70 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-            - name: Process Keys
+      - name: Process Keys
         run: |
           python3 - << 'EOF'
-import urllib.parse as urlparse
-import requests
+          import urllib.parse as urlparse
+          import requests
 
-unique = {}
+          unique_configs = {}
+          
+          # Читаем ссылки из site.txt
+          try:
+              with open('site.txt', 'r') as f:
+                  urls = [line.strip() for line in f if line.strip()]
+          except FileNotFoundError:
+              print("site.txt не найден")
+              exit(1)
 
-with open('site.txt', 'r') as f:
-    urls = [line.strip() for line in f if line.strip()]
+          def normalize_link(line):
+              # 1. Отсекаем имя (#)
+              base = line.split('#')[0].strip()
+              if '?' not in base:
+                  return base.lower().strip()
 
-def normalize_link(line):
-    # Убираем имя
-    base = line.split('#')[0].strip()
+              # 2. Разделяем адрес и параметры
+              base_part, params_str = base.split('?', 1)
+              base_part = base_part.lower().strip()
 
-    # Если нет параметров
-    if '?' not in base:
-        return base.lower()
+              # 3. Разбираем и нормализуем параметры
+              params = {}
+              for p in params_str.split('&'):
+                  if '=' in p:
+                      k, v = p.split('=', 1)
+                      k = k.lower().strip()
+                      # Декодируем спецсимволы и убираем пробелы
+                      v = urlparse.unquote(v).strip()
+                      params[k] = v
+                  elif p:
+                      params[p.lower().strip()] = ""
 
-    base_part, params_str = base.split('?', 1)
+              # 4. Собираем обратно с сортировкой ключей
+              normalized_params = "&".join(f"{k}={params[k]}" for k in sorted(params))
+              return f"{base_part}?{normalized_params}"
 
-    # Приводим base к нижнему регистру (uuid, host)
-    base_part = base_part.lower().strip()
+          for url in urls:
+              try:
+                  print(f"Загрузка: {url}")
+                  response = requests.get(url, timeout=15)
+                  for line in response.text.splitlines():
+                      line = line.strip()
+                      if not line or '://' not in line:
+                          continue
 
-    # Разбор параметров
-    params = {}
-    for p in params_str.split('&'):
-        if '=' in p:
-            k, v = p.split('=', 1)
-            k = k.lower().strip()
-            v = urlparse.unquote(v).strip()
-            params[k] = v
-        else:
-            params[p.lower().strip()] = ""
+                      # Создаем уникальный отпечаток ссылки
+                      norm = normalize_link(line)
 
-    # Сортировка параметров по ключу
-    normalized_params = "&".join(f"{k}={params[k]}" for k in sorted(params))
+                      if norm not in unique_configs:
+                          unique_configs[norm] = line
+              except Exception as e:
+                  print(f"Ошибка при работе с {url}: {e}")
 
-    return base_part + "?" + normalized_params
-
-
-for url in urls:
-    try:
-        response = requests.get(url, timeout=15)
-        for line in response.text.splitlines():
-            line = line.strip()
-            if not line or '://' not in line:
-                continue
-
-            normalized = normalize_link(line)
-
-            # Если такой нормализованный вариант ещё не встречался
-            if normalized not in unique:
-                unique[normalized] = line  # сохраняем оригинал с именем
-
-    except Exception as e:
-        print("Error:", e)
-
-with open('vless_list.txt', 'w', encoding='utf-8') as f:
-    for original in unique.values():
-        f.write(original + '\n')
-
-EOF
-
+          # Сохраняем результат
+          with open('vless_list.txt', 'w', encoding='utf-8') as f:
+              for original in unique_configs.values():
+                  f.write(original + '\n')
+          EOF
 
       - name: Commit and Push
         run: |
