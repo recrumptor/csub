@@ -19,47 +19,43 @@ jobs:
           python3 -c "
           import urllib.parse as urlparse
           import requests
+          import re
 
           unique_configs = {}
           
-          # Читаем список сайтов
           with open('site.txt', 'r') as f:
               urls = [line.strip() for line in f if line.strip()]
 
           for url in urls:
               try:
-                  response = requests.get(url, timeout=10)
+                  response = requests.get(url, timeout=15)
                   for line in response.text.splitlines():
                       line = line.strip()
                       if not line or '://' not in line:
                           continue
                       
-                      # 1. Отделяем часть с параметрами от комментария
-                      # Пример: vless://id@host:port?params#name
-                      part_without_comment = line.split('#')[0]
+                      # 1. Полностью отсекаем имя (всё после #)
+                      full_link = line.split('#')[0].strip()
                       
-                      # 2. Разбираем URL
-                      parsed = urlparse.urlparse(part_without_comment)
-                      base_address = f'{parsed.scheme}://{parsed.netloc}{parsed.path}'
-                      
-                      # 3. Нормализуем параметры (сортируем их по алфавиту)
-                      params = urlparse.parse_qsl(parsed.query)
-                      params.sort() # Сортировка делает порядок параметров неважным
-                      normalized_params = urlparse.urlencode(params)
-                      
-                      # Создаем уникальный ключ для сравнения
-                      comparison_key = f'{base_address}?{normalized_params}'
-                      
-                      # Если такого ключа еще нет, сохраняем оригинальную строку
-                      if comparison_key not in unique_configs:
-                          unique_configs[comparison_key] = line
-              except Exception as e:
-                  print(f'Error downloading {url}: {e}')
+                      # 2. Разбираем ссылку вручную, так как urlparse может капризничать с протоколами vless/vmess
+                      if '?' in full_link:
+                          base_address, params_str = full_link.split('?', 1)
+                          # Сортируем параметры (sni, security, и т.д.)
+                          params = params_str.split('&')
+                          params.sort()
+                          normalized_link = base_address + '?' + '&'.join(params)
+                      else:
+                          normalized_link = full_link
 
-          # Записываем результат
+                      # 3. Сравниваем по 'чистой' ссылке без имени
+                      if normalized_link not in unique_configs:
+                          unique_configs[normalized_link] = line
+              except Exception as e:
+                  print(f'Error: {e}')
+
           with open('vless_list.txt', 'w', encoding='utf-8') as f:
-              for key_original in unique_configs.values():
-                  f.write(key_original + '\n')
+              for original_line in unique_configs.values():
+                  f.write(original_line + '\n')
           "
 
       - name: Commit and Push
