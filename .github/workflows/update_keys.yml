@@ -22,7 +22,9 @@ jobs:
           import requests
 
           unique_configs = {}
-          
+          total_links = 0
+          duplicate_count = 0
+
           # Читаем ссылки из site.txt
           try:
               with open('site.txt', 'r') as f:
@@ -47,13 +49,12 @@ jobs:
                   if '=' in p:
                       k, v = p.split('=', 1)
                       k = k.lower().strip()
-                      # Декодируем спецсимволы и убираем пробелы
                       v = urlparse.unquote(v).strip()
                       params[k] = v
                   elif p:
                       params[p.lower().strip()] = ""
 
-              # 4. Собираем обратно с сортировкой ключей
+              # 4. Сортировка параметров
               normalized_params = "&".join(f"{k}={params[k]}" for k in sorted(params))
               return f"{base_part}?{normalized_params}"
 
@@ -61,16 +62,22 @@ jobs:
               try:
                   print(f"Загрузка: {url}")
                   response = requests.get(url, timeout=15)
+
                   for line in response.text.splitlines():
                       line = line.strip()
                       if not line or '://' not in line:
                           continue
 
-                      # Создаем уникальный отпечаток ссылки
+                      total_links += 1
                       norm = normalize_link(line)
 
                       if norm not in unique_configs:
                           unique_configs[norm] = line
+                      else:
+                          duplicate_count += 1
+                          # Логируем дубликаты для контроля
+                          print(f"--- Дубликат найден: {norm} ---")
+
               except Exception as e:
                   print(f"Ошибка при работе с {url}: {e}")
 
@@ -78,6 +85,13 @@ jobs:
           with open('vless_list.txt', 'w', encoding='utf-8') as f:
               for original in unique_configs.values():
                   f.write(original + '\n')
+
+          # Итоговая статистика
+          print("\n===== СТАТИСТИКА =====")
+          print(f"Всего ссылок получено: {total_links}")
+          print(f"Уникальных после нормализации: {len(unique_configs)}")
+          print(f"Удалено как дубликаты: {duplicate_count}")
+          print("=======================\n")
           EOF
 
       - name: Commit and Push
