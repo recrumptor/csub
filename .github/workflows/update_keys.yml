@@ -48,7 +48,7 @@ jobs:
                   "name", "remark", "peer", "alpn", "flow", "tls",
                   "allowinsecure", "packetencoding", "aid", "ps",
                   "group", "tag", "v", "sid", "encryption", "fp",
-                  "headertype"
+                  "headertype", "type"
               }
 
               params = {}
