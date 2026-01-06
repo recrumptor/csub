@@ -37,11 +37,12 @@ jobs:
               # 1. Отсекаем имя (#)
               base = line.split('#')[0].strip()
               if '?' not in base:
-                  return base.lower().strip().rstrip('/')
+                  return base.lower().strip()
 
               # 2. Разделяем адрес и параметры
               base_part, params_str = base.split('?', 1)
               base_part = base_part.lower().strip().rstrip('/') # Убираем / в конце адреса
+              base_part = base_part.rsplit(':', 1)[0] + ':' + base_part.rsplit(':', 1)[1].rstrip('/')
 
               # 3. Игнорируем мусорные параметры
               ignore_keys = {
