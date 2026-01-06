@@ -1,0 +1,75 @@
+name: Sort VLESS list
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sort-vless:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download vless_list.txt
+        run: |
+          curl -s -o vless_list.txt \
+            https://raw.githubusercontent.com/recrumptor/csub/refs/heads/main/vless_list.txt
+
+      - name: Sort VLESS links (IP first, domains last)
+        run: |
+          echo "=== Parsing vless_list.txt ==="
+
+          total=$(wc -l < vless_list.txt)
+          echo "Total lines: $total"
+
+          # Разделяем IP и домены
+          awk -F '@' '
+            {
+              split($2, a, ":");
+              host = a[1];
+              if (host ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
+                print host " " $0 > "ips.tmp";
+              } else {
+                print $0 > "domains.tmp";
+              }
+            }
+          ' vless_list.txt
+
+          ip_count=$(wc -l < ips.tmp 2>/dev/null || echo 0)
+          domain_count=$(wc -l < domains.tmp 2>/dev/null || echo 0)
+
+          echo "IP entries: $ip_count"
+          echo "Domain entries: $domain_count"
+
+          # Сортировка IP
+          if [ "$ip_count" -gt 0 ]; then
+            sort -t . -k1,1n -k2,2n -k3,3n -k4,4n ips.tmp | cut -d " " -f2- > vless_sorted.txt
+          else
+            touch vless_sorted.txt
+          fi
+
+          # Сортировка доменов
+          if [ "$domain_count" -gt 0 ]; then
+            sort domains.tmp >> vless_sorted.txt
+          fi
+
+          echo "=== Sorting complete ==="
+          echo "Output file: vless_sorted.txt"
+          echo "Output lines: $(wc -l < vless_sorted.txt)"
+
+          rm -f ips.tmp domains.tmp
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          git add vless_sorted.txt
+          git commit -m "Auto-sort VLESS list (IP first, domains last)" || echo "No changes"
+          git push
