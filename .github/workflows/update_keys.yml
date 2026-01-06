@@ -64,9 +64,7 @@ jobs:
                           continue
                       params[k] = v
                   elif p:
-                      k = p.lower().strip()
-                      if k not in ignore_keys:
-                          params[k] = ""
+                      continue
 
               # 4. Сортировка параметров
               normalized_params = "&".join(f"{k}={params[k]}" for k in sorted(params))
