@@ -47,7 +47,8 @@ jobs:
               ignore_keys = {
                   "name", "remark", "peer", "alpn", "flow", "tls",
                   "allowinsecure", "packetencoding", "aid", "ps",
-                  "group", "tag", "v"
+                  "group", "tag", "v", "sid", "encryption", "fp",
+                  "headertype"
               }
 
               params = {}
