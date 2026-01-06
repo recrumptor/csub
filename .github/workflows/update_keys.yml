@@ -37,7 +37,7 @@ jobs:
               # 1. Отсекаем имя (#)
               base = line.split('#')[0].strip()
               if '?' not in base:
-                  return base.lower().strip()
+                  return base.lower().strip().rstrip('/')
 
               # 2. Разделяем адрес и параметры
               base_part, params_str = base.split('?', 1)
