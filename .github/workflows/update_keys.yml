@@ -57,7 +57,7 @@ jobs:
                   if '=' in p:
                       k, v = p.split('=', 1)
                       k = k.lower().strip()
-                      if not k.replace('-', '').replace('_', '').isalnum():
+                      if k in ignore_keys:
                           continue
                       v = urlparse.unquote(v).strip()
                       if v == "":
