@@ -43,25 +43,26 @@ jobs:
               base_part, params_str = base.split('?', 1)
               base_part = base_part.lower().strip()
 
-              ignore_keys = {
-              "name", "remark", "peer", "alpn", "flow", "tls",
-              "allowinsecure", "packetencoding", "aid", "ps",
-              "group", "tag"
-          }
+                  ignore_keys = {
+        "name", "remark", "peer", "alpn", "flow", "tls",
+        "allowinsecure", "packetencoding", "aid", "ps",
+        "group", "tag"
+    }
 
-          params = {}
-          for p in params_str.split('&'):
-              if '=' in p:
-                  k, v = p.split('=', 1)
-                  k = k.lower().strip()
-                  if k in ignore_keys:
-                      continue
-                  v = urlparse.unquote(v).strip()
-                  params[k] = v
-              elif p:
-                  k = p.lower().strip()
-                  if k not in ignore_keys:
-                      params[k] = ""
+    params = {}
+    for p in params_str.split('&'):
+        if '=' in p:
+            k, v = p.split('=', 1)
+            k = k.lower().strip()
+            if k in ignore_keys:
+                continue
+            v = urlparse.unquote(v).strip()
+            params[k] = v
+        elif p:
+            k = p.lower().strip()
+            if k not in ignore_keys:
+                params[k] = ""
+
 
               # 4. Сортировка параметров
               normalized_params = "&".join(f"{k}={params[k]}" for k in sorted(params))
