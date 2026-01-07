@@ -27,7 +27,7 @@ jobs:
 
           # Читаем ссылки из site.txt
           try:
-              with open('site.txt', 'r', encoding='utf-8') as f:
+              with open('site.txt', 'r') as f:
                   urls = [line.strip() for line in f if line.strip()]
           except FileNotFoundError:
               print("site.txt не найден")
@@ -93,7 +93,7 @@ jobs:
                   print(f"Ошибка при работе с {url}: {e}")
 
           # Сохраняем результат
-          with open('vless_list.txt', 'w', encoding='utf-8') as f:
+          with open('vless_list.txt', 'w') as f:
               for original in unique_configs.values():
                   f.write(original + '\n')
 
