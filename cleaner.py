@@ -3,7 +3,8 @@ import re
 import os
 
 # Источники
-CONFIG_URL = "https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/refs/heads/main/githubmirror/26.txt"
+# CONFIG_URL = "https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/refs/heads/main/githubmirror/26.txt"
+CONFIG_URL = "https://raw.githubusercontent.com/recrumptor/csub/refs/heads/main/vless_list.txt"
 EXTERNAL_WHITELIST_URL = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt"
 LOCAL_WHITELIST_FILE = "mycdn.txt"
 
