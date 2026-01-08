@@ -59,7 +59,7 @@ jobs:
                       k = k.lower().strip()
                       if k in ignore_keys:
                           continue
-                      v = urlparse.unquote(v).strip()
+                      v = v.strip()
                       if v == "":
                           continue
                       params[k] = v
