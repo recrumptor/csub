@@ -2,8 +2,7 @@ import requests
 import re
 
 # Источники
-# CONFIG_URL = "https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/refs/heads/main/githubmirror/26.txt"
-CONFIG_URL = "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt"
+CONFIG_URL = "https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/refs/heads/main/githubmirror/26.txt"
 WHITELIST_URL = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt"
 
 stats = {
@@ -12,18 +11,20 @@ stats = {
     "bad_ip_or_port": 0,
     "ad_spam": 0,
     "expired_or_warning": 0,
-    "rejected_sni": 0,
+    "rejected_sni_count": 0,
     "valid_ru": 0,
     "valid_whitelist": 0
 }
 
+# Множество для хранения уникальных отбракованных доменов
+rejected_sni_list = set()
+
 def get_whitelist():
     try:
         resp = requests.get(WHITELIST_URL, timeout=10)
-        # Очищаем список от пустых строк и пробелов
-        return [line.strip() for line in resp.text.splitlines() if line.strip() and not line.startswith('#')]
+        return [line.strip().lower() for line in resp.text.splitlines() if line.strip() and not line.startswith('#')]
     except:
-        print("Ошибка загрузки вайтлиста, фильтруем только по .ru")
+        print("! Ошибка загрузки вайтлиста, используем только .ru")
         return []
 
 WHITELIST = get_whitelist()
@@ -59,26 +60,28 @@ def is_valid(link):
         stats["expired_or_warning"] += 1
         return False
 
-    # 5. Сложный фильтр SNI
+    # 5. Фильтр SNI
     sni_match = re.search(r'sni=([^&?#]+)', link)
     if sni_match:
         sni = sni_match.group(1).lower()
         
-        # Проверка 1: Прямое попадание в .ru
+        # Проверка .ru
         if sni.endswith('.ru'):
             stats["valid_ru"] += 1
             return True
         
-        # Проверка 2: Сверка с вайтлистом (проверяем хвост домена)
+        # Проверка по вайтлисту
         for allowed_domain in WHITELIST:
             if sni == allowed_domain or sni.endswith('.' + allowed_domain):
                 stats["valid_whitelist"] += 1
                 return True
                 
-        stats["rejected_sni"] += 1
+        # Если не прошел — запоминаем SNI
+        rejected_sni_list.add(sni)
+        stats["rejected_sni_count"] += 1
         return False
     else:
-        stats["rejected_sni"] += 1
+        stats["rejected_sni_count"] += 1
         return False
 
 def main():
@@ -92,19 +95,24 @@ def main():
         with open("cleaned_links.txt", "w", encoding="utf-8") as f:
             f.write("\n".join(cleaned_links))
         
+        # Печать отчета
         print("="*40)
-        print("ОТЧЕТ О ФИЛЬТРАЦИИ")
+        print("📊 ОТЧЕТ О ФИЛЬТРАЦИИ")
         print("="*40)
-        print(f"Всего получено:          {stats['total_received']}")
-        print(f"Прошли проверку (.ru):   {stats['valid_ru']}")
-        print(f"Прошли по вайтлисту:     {stats['valid_whitelist']}")
-        print(f"ИТОГО СОХРАНЕНО:         {len(cleaned_links)}")
+        print(f"✅ Прошли проверку (.ru):   {stats['valid_ru']}")
+        print(f"✅ Прошли по вайтлисту:     {stats['valid_whitelist']}")
+        print(f"❌ Отбраковано SNI:         {stats['rejected_sni_count']}")
+        print(f"💾 ИТОГО СОХРАНЕНО:         {len(cleaned_links)}")
         print("-" * 40)
-        print(f"ОТБРАКОВАНО:")
-        print(f" - Синтаксис/Мусор:      {stats['bad_syntax'] + stats['ad_spam']}")
-        print(f" - Невалидный SNI:       {stats['rejected_sni']}")
-        print(f" - Пустые IP/Порт 1:     {stats['bad_ip_or_port']}")
-        print(f" - Истекшие/Заглушки:    {stats['expired_or_warning']}")
+        
+        if rejected_sni_list:
+            print("🔍 СПИСОК ОТБРАКОВАННЫХ SNI (уникальные):")
+            # Сортируем для удобства чтения
+            for s in sorted(rejected_sni_list):
+                print(f"  - {s}")
+            print("-" * 40)
+            
+        print(f"Всего получено строк: {stats['total_received']}")
         print("="*40)
         
     except Exception as e:
