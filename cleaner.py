@@ -3,7 +3,6 @@ import re
 import os
 
 # Источники
-# CONFIG_URL = "https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/refs/heads/main/githubmirror/26.txt"
 CONFIG_URL = "https://raw.githubusercontent.com/recrumptor/csub/refs/heads/main/vless_list.txt"
 EXTERNAL_WHITELIST_URL = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt"
 LOCAL_WHITELIST_FILE = "mycdn.txt"
@@ -24,6 +23,7 @@ rejected_sni_list = set()
 
 def load_whitelists():
     combined_list = set()
+    my_cdn_domains = set()
     
     # 1. Загружаем внешний список
     try:
@@ -40,14 +40,13 @@ def load_whitelists():
         try:
             with open(LOCAL_WHITELIST_FILE, "r", encoding="utf-8") as f:
                 local = [line.strip().lower() for line in f.read().splitlines() if line.strip() and not line.startswith('#')]
+                my_cdn_domains.update(local)
                 combined_list.update(local)
                 print(f"Загружено из вашего mycdn.txt: {len(local)} доменов")
-                # Сохраним для статистики отдельно
-                return combined_list, set(local)
         except Exception as e:
             print(f"! Ошибка чтения mycdn.txt: {e}")
     
-    return combined_list, set()
+    return combined_list, my_cdn_domains
 
 # Инициализация списков
 FULL_WHITELIST, MY_CDN_SET = load_whitelists()
@@ -56,60 +55,71 @@ def is_valid(link):
     if not link.strip().startswith("vless://"):
         return False
 
+    # 1. Проверка синтаксиса (&amp;)
     if "&amp;" in link:
         stats["bad_syntax"] += 1
         return False
 
+    # 2. Проверка IP и порта
     try:
         server_info = link.split('@')[1].split('?')[0]
         address = server_info.split(':')[0] if ':' in server_info else server_info
         port = server_info.split(':')[1] if ':' in server_info else "443"
-        if address in ['0.0.0.0', '127.0.0.1', 'localhost'] or port == "1":
+        
+        # Отсекаем пустые IP и сервисный порт 1
+        if address in ['0.0.0.0', '127.0.0.1', 'localhost', '1.1.1.1'] or port == "1":
             stats["bad_ip_or_port"] += 1
             return False
     except:
         stats["bad_ip_or_port"] += 1
         return False
 
+    # 3. Проверка на рекламный спам в host или spx (наличие @ внутри параметра)
     if re.search(r'(host|spx)=[^&]*@', link):
         stats["ad_spam"] += 1
         return False
 
+    # 4. Проверка на заглушки (Expired/Warning)
     if any(word in link.lower() for word in ["expired", "subscription_empty", "warning"]):
         stats["expired_or_warning"] += 1
         return False
 
+    # 5. Проверка SNI (Reality)
     sni_match = re.search(r'sni=([^&?#]+)', link)
     if sni_match:
         sni = sni_match.group(1).lower()
         
-        # 1. Сначала .ru
+        # 5.1 Сначала зона .ru
         if sni.endswith('.ru'):
             stats["valid_ru"] += 1
             return True
         
-        # 2. Потом ваш личный список (приоритет для статистики)
+        # 5.2 Затем ваш личный mycdn.txt
         for my_domain in MY_CDN_SET:
             if sni == my_domain or sni.endswith('.' + my_domain):
                 stats["valid_my_cdn"] += 1
                 return True
 
-        # 3. Потом внешний список
+        # 5.3 Затем внешний вайтлист
         for allowed_domain in FULL_WHITELIST:
             if sni == allowed_domain or sni.endswith('.' + allowed_domain):
                 stats["valid_external_whitelist"] += 1
                 return True
                 
+        # Если домен не прошел ни один фильтр
         rejected_sni_list.add(sni)
         stats["rejected_sni_count"] += 1
         return False
     else:
+        # Если SNI вообще не найден в ссылке
         stats["rejected_sni_count"] += 1
         return False
 
 def main():
     try:
+        print(f"Загрузка конфигов из: {CONFIG_URL}")
         response = requests.get(CONFIG_URL, timeout=30)
+        response.raise_for_status()
         lines = response.text.splitlines()
         stats["total_received"] = len(lines)
         
@@ -119,23 +129,31 @@ def main():
             f.write("\n".join(cleaned_links))
         
         print("="*40)
-        print("📊 ОТЧЕТ С УЧЕТОМ MYCDN.TXT")
+        print("📊 ПОЛНЫЙ ОТЧЕТ О ФИЛЬТРАЦИИ")
         print("="*40)
+        print(f"Всего получено строк:      {stats['total_received']}")
         print(f"✅ Прошли по .ru:           {stats['valid_ru']}")
-        print(f"🌟 Прошли по вашему списку:  {stats['valid_my_cdn']}")
+        print(f"🌟 Прошли по mycdn.txt:     {stats['valid_my_cdn']}")
         print(f"✅ Прошли по внешнему списку: {stats['valid_external_whitelist']}")
-        print(f"❌ Отбраковано SNI:         {stats['rejected_sni_count']}")
+        print("-" * 40)
+        print(f"❌ ОТБРАКОВАНО:")
+        print(f" - Ошибки синтаксиса (&amp;):    {stats['bad_syntax']}")
+        print(f" - Пустые IP / Порт 1:        {stats['bad_ip_or_port']}")
+        print(f" - Рекламный спам (host/spx): {stats['ad_spam']}")
+        print(f" - Заглушки (Expired/Empty):  {stats['expired_or_warning']}")
+        print(f" - Неизвестные SNI:           {stats['rejected_sni_count']}")
+        print("-" * 40)
         print(f"💾 ИТОГО СОХРАНЕНО:         {len(cleaned_links)}")
         print("-" * 40)
         
         if rejected_sni_list:
-            print(f"🔍 ОТБРАКОВАННЫЕ SNI: {len(rejected_sni_list)} шт.")
+            print(f"🔍 СПИСОК ОТБРАКОВАННЫХ SNI (уникальные):")
             for s in sorted(rejected_sni_list):
                 print(f"  - {s}")
         print("="*40)
         
     except Exception as e:
-        print(f"Ошибка: {e}")
+        print(f"Критическая ошибка: {e}")
 
 if __name__ == "__main__":
     main()
