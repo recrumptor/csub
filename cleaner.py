@@ -2,7 +2,8 @@ import requests
 import re
 
 # Источники
-CONFIG_URL = "https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/refs/heads/main/githubmirror/26.txt"
+№ CONFIG_URL = "https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/refs/heads/main/githubmirror/26.txt"
+CONFIG_URL = "https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt"
 WHITELIST_URL = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt"
 
 stats = {
