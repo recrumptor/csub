@@ -2,7 +2,7 @@ name: Clean VPN Configs
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Запуск каждые 6 часов
+    - cron: '0 */1 * * *' # Запуск каждые 1 часов
   workflow_dispatch: # Возможность запустить вручную
   
 permissions:
