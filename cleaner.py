@@ -90,9 +90,9 @@ def is_valid(link):
         sni = sni_match.group(1).lower()
         
         # 5.1 Сначала зона .ru
-        if sni.endswith('.ru'):
-            stats["valid_ru"] += 1
-            return True
+        # if sni.endswith('.ru'):
+            # stats["valid_ru"] += 1
+            # return True
         
         # 5.2 Затем ваш личный mycdn.txt
         for my_domain in MY_CDN_SET:
