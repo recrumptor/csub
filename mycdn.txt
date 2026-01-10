@@ -101,6 +101,7 @@ vk-portal.net
 okcdn.ru
 mycdn.me
 ok.ru
+apiok.ru
 vk-analytics.ru
 userapi.com
 imgsmail.ru
