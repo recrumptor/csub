@@ -1,10 +1,11 @@
+import urllib.parse
 import re
 
-# 1. Исправлен флаг Финляндии
+# Список флагов (теперь в обычном виде, скрипт сам их найдет после декодирования)
 ALLOWED_FLAGS = {
     '🇷🇺': 'Россия',
     '🇩🇪': 'Германия',
-    '🇫🇮': 'Финляндия', 
+    '🇫🇮': 'Финляндия',
     '🇳🇱': 'Нидерланды'
 }
 
@@ -14,26 +15,31 @@ def filter_links(input_file, output_file):
             links = file.readlines()
 
         filtered_links = []
-
-        # 2. Исправлено RE: ищем # и два региональных символа в самом конце строки
-        # \s* берет возможные пробелы перед концом строки
-        flag_pattern = re.compile(r'#([\U0001F1E6-\U0001F1FF]{2})\s*$')
+        
+        # Регулярка для поиска флага (двух символов региона)
+        flag_pattern = re.compile(r'([\U0001F1E6-\U0001F1FF]{2})')
 
         for link in links:
-            match = flag_pattern.search(link.strip())
-            if match:
-                flag = match.group(1)
-                if flag in ALLOWED_FLAGS:
-                    filtered_links.append(link)
+            # 1. Декодируем ссылку (%F0%9F%87%B7 -> 🇷🇺)
+            decoded_link = urllib.parse.unquote(link)
+            
+            # 2. Ищем флаг в части после символа #
+            if '#' in decoded_link:
+                anchor = decoded_link.split('#')[-1]
+                match = flag_pattern.search(anchor)
+                
+                if match:
+                    flag = match.group(1)
+                    if flag in ALLOWED_FLAGS:
+                        filtered_links.append(link)
 
         with open(output_file, 'w', encoding='utf-8') as file:
             file.writelines(filtered_links)
         
-        print(f"Готово! Сохранено ссылок: {len(filtered_links)}")
+        print(f"Готово! Найдено подходящих ссылок: {len(filtered_links)}")
     
     except Exception as e:
         print(f"Ошибка: {e}")
 
 if __name__ == "__main__":
     filter_links('cleaned_links.txt', 'filtered_links.txt')
-
