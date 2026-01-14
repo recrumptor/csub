@@ -1,0 +1,25 @@
+
+name: Filter VLESS Links
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  filter-links:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: Run filter script
+      run: |
+        python countries.py
+    - name: Commit changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "Updated filtered links"
+        file_pattern: filtered_links.txt
