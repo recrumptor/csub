@@ -20,7 +20,9 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests yadisk
         
 
       - name: Process Keys
@@ -124,3 +126,8 @@ jobs:
         with:
           commit_message: "Update lists and links"
           file_pattern: "vless_list.txt cleaned_links.txt filtered_links.txt"
+          
+      - name: Run upload script
+        env:
+          YANDEX_DISK_TOKEN: ${{ secrets.YANDEX_DISK_TOKEN }}
+        run: python upload.py
