@@ -1,8 +1,11 @@
 name: Clean VPN Configs
 
 on:
-  schedule:
-    - cron: '01 */6 * * *' # Запуск каждые 6 часов 1 минута
+  push:
+    branches:
+      - main
+    paths:
+      - 'vless_list.txt' # Скрипт запустится только если этот файл изменился
   workflow_dispatch: # Возможность запустить вручную
   
 permissions:
