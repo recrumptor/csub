@@ -114,8 +114,8 @@ jobs:
           print("=======================\n")
           EOF
           
-      - name: Clean Configs (Run clean.py)
-        run: python3 clean.py
+      - name: Clean Configs (Run cleaner.py)
+        run: python3 cleaner.py
 
       - name: Commit and Push
         run: |
