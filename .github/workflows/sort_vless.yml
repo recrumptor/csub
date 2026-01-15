@@ -1,11 +1,6 @@
 name: Sort VLESS list
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'cleaned_links.txt' # Скрипт запустится только если этот файл изменился
   workflow_dispatch: # Возможность запустить вручную
   
 permissions:
