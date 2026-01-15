@@ -1,10 +1,13 @@
 name: Sort VLESS list
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 */6 * * *"
-
+  push:
+    branches:
+      - main
+    paths:
+      - 'cleaned_links.txt' # Скрипт запустится только если этот файл изменился
+  workflow_dispatch: # Возможность запустить вручную
+  
 permissions:
   contents: write
 
