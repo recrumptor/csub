@@ -3,7 +3,7 @@ import re
 import os
 
 # Источники
-CONFIG_URL = "https://raw.githubusercontent.com/recrumptor/csub/refs/heads/main/vless_list.txt"
+CONFIG_URL = "vless_list.txt"
 EXTERNAL_WHITELIST_URL = "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/main/whitelist.txt"
 LOCAL_WHITELIST_FILE = "mycdn.txt"
 
@@ -117,10 +117,17 @@ def is_valid(link):
 
 def main():
     try:
-        print(f"Загрузка конфигов из: {CONFIG_URL}")
-        response = requests.get(CONFIG_URL, timeout=30)
-        response.raise_for_status()
-        lines = response.text.splitlines()
+        print(f"Чтение файла: {CONFIG_URL}")
+        
+        # Проверяем, существует ли файл
+        if not os.path.exists(CONFIG_URL):
+            print(f"Ошибка: Файл {CONFIG_URL} не найден!")
+            return
+
+        # Читаем файл локально
+        with open(CONFIG_URL, "r", encoding="utf-8") as f:
+            lines = f.read().splitlines()
+            
         stats["total_received"] = len(lines)
         
         cleaned_links = [line for line in lines if is_valid(line)]
