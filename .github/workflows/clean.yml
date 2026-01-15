@@ -1,11 +1,10 @@
 name: Clean VPN Configs
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'vless_list.txt' # Скрипт запустится только если этот файл изменился
+  workflow_run:
+    workflows: update_keys.yml
+    types:
+      - completed
   workflow_dispatch: # Возможность запустить вручную
   
 permissions:
