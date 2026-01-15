@@ -14,6 +14,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests
+        
 
       - name: Process Keys
         run: |
@@ -105,6 +113,9 @@ jobs:
           print(f"Удалено как дубликаты: {duplicate_count}")
           print("=======================\n")
           EOF
+          
+      - name: Clean Configs (Run clean.py)
+        run: python3 clean.py
 
       - name: Commit and Push
         run: |
