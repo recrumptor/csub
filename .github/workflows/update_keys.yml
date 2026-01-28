@@ -116,8 +116,8 @@ jobs:
           print("=======================\n")
           EOF
           
-      - name: Clean Configs (Run cleaner.py)
-        run: python3 cleaner.py
+      # - name: Clean Configs (Run cleaner.py)
+        # run: python3 cleaner.py
       - name: Filter Countries (Run countries.py)
         run: python3 countries.py
 
