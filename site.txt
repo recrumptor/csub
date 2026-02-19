@@ -4,5 +4,5 @@ https://raw.githubusercontent.com/zieng2/wl/main/vless_universal.txt
 # https://raw.githubusercontent.com/LowiKLive/BypassWhitelistRu/refs/heads/main/WhiteList-Bypass_Ru.txt
 # https://raw.githubusercontent.com/EtoNeYaProject/etoneyaproject.github.io/refs/heads/main/whitelist
 # https://gitverse.ru/api/repos/cid-uskoritel/cid-white/raw/branch/master/whitelist.txt
-https://wlrus.lol/confs/wl.txt
+https://wlrus.lol/confs/selected.txt
 
