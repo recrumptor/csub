@@ -1,15 +1,9 @@
 alfabank.ru
 alfabank.st
-sovcombank.ru
-sovcombank.com
 cdn.s3torage.ru
 cdn.mdigital.ru
 mironline.ru
 mirconnect.ru
-t-bank-app.ru
-tbank.ru
-tinkoff.ru
-cdn-tinkoff.ru
 finuslugi.ru
 moex.com
 banki.ru
