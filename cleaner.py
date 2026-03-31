@@ -9,6 +9,7 @@ LOCAL_WHITELIST_FILE = "mycdn.txt"
 
 stats = {
     "total_received": 0,
+    "fixed_encoding": 0,
     "bad_syntax": 0,
     "bad_ip_or_port": 0,
     "ad_spam": 0,
@@ -20,7 +21,15 @@ stats = {
 }
 
 rejected_sni_list = set()
-
+def fix_and_count(link):
+    # Ищем последовательности %25... которые ломают конфиг
+    pattern = r'(%25)+(2F|/)?'
+    if re.search(pattern, link):
+        stats["fixed_encoding"] += 1
+        # Заменяем мусор на один корректный код слэша
+        return re.sub(pattern, '%2F', link)
+    return link
+    
 def load_whitelists():
     combined_list = set()
     my_cdn_domains = set()
@@ -129,8 +138,12 @@ def main():
             lines = f.read().splitlines()
             
         stats["total_received"] = len(lines)
+
+        # ШАГ 1: Исправляем кодировки во всех строках
+        processed_lines = [fix_and_count(line) for line in lines]
         
-        cleaned_links = [line for line in lines if is_valid(line)]
+        # ШАГ 2: Фильтруем уже исправленные ссылки через is_valid
+        cleaned_links = [line for line in processed_lines if is_valid(line)]
         
         with open("cleaned_links.txt", "w", encoding="utf-8") as f:
             f.write("\n".join(cleaned_links))
@@ -139,7 +152,7 @@ def main():
         print("📊 ПОЛНЫЙ ОТЧЕТ О ФИЛЬТРАЦИИ")
         print("="*40)
         print(f"Всего получено строк:      {stats['total_received']}")
-        print(f"✅ Прошли по .ru:           {stats['valid_ru']}")
+        print(f"🔧 Исправлено кодировок:    {stats['fixed_encoding']}") 
         print(f"🌟 Прошли по mycdn.txt:     {stats['valid_my_cdn']}")
         print(f"✅ Прошли по внешнему списку: {stats['valid_external_whitelist']}")
         print("-" * 40)
