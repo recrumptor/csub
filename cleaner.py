@@ -22,12 +22,16 @@ stats = {
 
 rejected_sni_list = set()
 def fix_and_count(link):
-    # Ищем последовательности %25... которые ломают конфиг
-    pattern = r'(%25)+(2F|/)?'
-    if re.search(pattern, link):
-        stats["fixed_encoding"] += 1
-        # Заменяем мусор на один корректный код слэша
-        return re.sub(pattern, '%2F', link)
+    if "%25" in link:
+        original = link
+        # Цикл работает, пока не вычистит ВСЕ уровни вложенности %25
+        while "%25" in link:
+            link = link.replace("%25", "%")
+        
+        # Если после замены строка изменилась — значит, мы реально что-то починили
+        if link != original:
+            stats["fixed_encoding"] += 1
+        return link
     return link
     
 def load_whitelists():
