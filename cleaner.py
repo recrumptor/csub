@@ -22,20 +22,19 @@ stats = {
 
 rejected_sni_list = set()
 def fix_and_count(link):
-    if "%25" in link:
-        original = link
-        # Цикл работает, пока не вычистит ВСЕ уровни вложенности %25
-        while "%25" in link:
-            link = link.replace("%25", "%")
-        # 2. Очистка SNI от порта (ищет %3A и цифры после него в части параметров)
-        # Ищем паттерн: sni=домен%3Aпорт
-        link = re.sub(r'(sni=[^&#]+)%3A\d+', r'\1', link)
+    original = link
+    # Цикл работает, пока не вычистит ВСЕ уровни вложенности %25
+    while "%25" in link:
+        link = link.replace("%25", "%")
+    # 2. Очистка SNI от порта (ищет %3A и цифры после него в части параметров)
+    # Ищем паттерн: sni=домен%3Aпорт
+    link = re.sub(r'(sni=[^&#]+)%3A\d+', r'\1', link)
         
-        # Если после замены строка изменилась — значит, мы реально что-то починили
-        if link != original:
-            stats["fixed_encoding"] += 1
-        return link
+    # Если после замены строка изменилась — значит, мы реально что-то починили
+    if link != original:
+        stats["fixed_encoding"] += 1
     return link
+    
     
 def load_whitelists():
     combined_list = set()
