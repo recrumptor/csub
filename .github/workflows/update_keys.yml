@@ -56,10 +56,10 @@ jobs:
 
               # 3. Игнорируем мусорные параметры
               ignore_keys = {
-                  "name", "remark", "peer", "alpn", "flow", "tls",
-                  "allowinsecure", "packetencoding", "aid", "ps",
-                  "group", "tag", "v", "sid", "encryption", "fp",
-                  "headertype", "type"
+                  "name", "remark", "ps",
+                  "group", "tag", "v",
+                  "encryption", "allowinsecure",
+                  "aid", "peer"
               }
 
               params = {}
