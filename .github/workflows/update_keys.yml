@@ -59,7 +59,7 @@ jobs:
                   "name", "remark", "ps",
                   "group", "tag", "v",
                   "encryption", "allowinsecure",
-                  "aid", "peer"
+                  "aid", "peer", "fp"
               }
 
               params = {}
