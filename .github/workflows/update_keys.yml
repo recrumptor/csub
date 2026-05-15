@@ -2,7 +2,7 @@ name: Update VLESS Keys
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '12 */1 * * *'
   workflow_dispatch:
 
 permissions:
