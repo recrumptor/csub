@@ -1,2 +1,1 @@
-vless://633f424e-2b11-48da-a6b3-a849dd71456f@45.12.75.242:26424?encryption=none&pbk=l8AubqcxQO-HRFJy4pZL1vbLOo-eXit69s-XulSELE0&security=reality&sid=23103e1e&sni=ya.ru&type=raw#%F0%9F%87%B7%F0%9F%87%BA%20Beget%20%E2%80%94%20%2346
-vless://f1087776-5077-4b2f-9338-687d2787c64e@45.11.27.133:443?encryption=none&fp=firefox&mode=gun&pbk=_bEA-GWmkPW_YITfFaWHogq_5AsYX4zAqomlhRQouS4&security=reality&serviceName=UpdateService&sid=1e853ef7fcad4788&sni=s3.t2.ru&type=grpc#%F0%9F%87%A9%F0%9F%87%AA%20Germany%20%E2%80%94%20%2367
+vless://633f424e-2b11-48da-a6b3-a849dd71456f@45.12.75.242:26424?encryption=none&fp=chrome&pbk=l8AubqcxQO-HRFJy4pZL1vbLOo-eXit69s-XulSELE0&security=reality&sid=23103e1e&sni=ya.ru&type=raw#%F0%9F%87%B7%F0%9F%87%BA%20Beget%20%E2%80%94%20%2348
